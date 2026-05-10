@@ -1,0 +1,47 @@
+name: Download from GitHub Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      file_path:
+        description: "File path on GitHub Pages (e.g. files/myfile.zip)"
+        required: true
+        type: string
+      destination_path:
+        description: "Where to save it in the repo (e.g. downloads/myfile.zip)"
+        required: true
+        type: string
+
+jobs:
+  download-and-commit:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build GitHub Pages URL and download file
+        run: |
+          PAGES_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ inputs.file_path }}"
+          echo "Downloading from: $PAGES_URL"
+          mkdir -p "$(dirname "${{ inputs.destination_path }}")"
+          curl -L \
+            --fail \
+            --retry 3 \
+            --retry-delay 5 \
+            -o "${{ inputs.destination_path }}" \
+            "$PAGES_URL"
+          echo "✅ Downloaded successfully"
+          ls -lh "${{ inputs.destination_path }}"
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ inputs.destination_path }}"
+          git diff --cached --quiet && echo "⚠️ No changes to commit" && exit 0
+          git commit -m "chore: download ${{ inputs.file_path }} from GitHub Pages"
+          git push
