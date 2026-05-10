@@ -1,3 +1,4 @@
 *.exe filter=lfs diff=lfs merge=lfs -text
 *.downloads/31668 filter=lfs diff=lfs merge=lfs -text
 *.downloads/en filter=lfs diff=lfs merge=lfs -text
+*.apk filter=lfs diff=lfs merge=lfs -text
