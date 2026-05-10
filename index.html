@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Repo Downloader</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f12;
+      --surface: #13161b;
+      --border: #1f2430;
+      --accent: #00e5a0;
+      --accent-dim: rgba(0, 229, 160, 0.08);
+      --text: #e8eaf0;
+      --muted: #5a6070;
+      --error: #ff5f6d;
+      --warn: #ffca44;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .logo-icon svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .field { margin-bottom: 1.25rem; }
+
+    label {
+      display: block;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--muted); }
+
+    input[type="password"] { letter-spacing: 0.1em; }
+
+    .token-note {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 5px;
+    }
+
+    .token-note a { color: var(--accent); text-decoration: none; }
+    .token-note a:hover { text-decoration: underline; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
+
+    button {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 0.8rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+
+    button:hover { opacity: 0.88; }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+    #status {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      display: none;
+      line-height: 1.6;
+    }
+
+    #status.success { background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.3); color: var(--accent); }
+    #status.error   { background: rgba(255,95,109,0.08); border: 1px solid rgba(255,95,109,0.3); color: var(--error); }
+    #status.loading { background: rgba(255,202,68,0.08); border: 1px solid rgba(255,202,68,0.3); color: var(--warn); }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+    </div>
+    <div>
+      <h1>Repo Downloader</h1>
+      <div class="subtitle">github actions trigger</div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>GitHub Token (PAT)</label>
+    <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+    <div class="token-note">
+      Need one? <a href="https://github.com/settings/tokens/new?scopes=repo,workflow" target="_blank">Generate a token</a> — needs <code>repo</code> + <code>workflow</code> scopes.
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Repo (owner/name)</label>
+    <input type="text" id="repo" placeholder="your-username/your-repo" />
+  </div>
+
+  <hr class="divider"/>
+
+  <div class="field">
+    <label>Download URL</label>
+    <input type="url" id="url" placeholder="https://example.com/file.zip" />
+  </div>
+
+  <div class="field">
+    <label>Save to (path in repo)</label>
+    <input type="text" id="dest" placeholder="downloads/file.zip" />
+  </div>
+
+  <button id="btn" onclick="triggerWorkflow()">&#9654; Run Workflow</button>
+
+  <div id="status"></div>
+</div>
+
+<script>
+async function triggerWorkflow() {
+  const token = document.getElementById('token').value.trim();
+  const repo  = document.getElementById('repo').value.trim();
+  const url   = document.getElementById('url').value.trim();
+  const dest  = document.getElementById('dest').value.trim();
+  const status = document.getElementById('status');
+  const btn    = document.getElementById('btn');
+
+  status.style.display = 'none';
+
+  if (!token || !repo || !url || !dest) {
+    showStatus('error', '✗ All fields are required.');
+    return;
+  }
+
+  if (!repo.includes('/')) {
+    showStatus('error', '✗ Repo must be in format: owner/repo-name');
+    return;
+  }
+
+  btn.disabled = true;
+  showStatus('loading', '⏳ Triggering workflow...');
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/download-from-url.yml/dispatches`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: {
+          download_url: url,
+          destination_path: dest
+        }
+      })
+    });
+
+    if (res.status === 204) {
+      showStatus('success', '✓ Workflow triggered!\n\nCheck the Actions tab in your repo to see it running.\nThe file will be committed once complete.');
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showStatus('error', `✗ GitHub API error ${res.status}: ${err.message || 'Unknown error'}`);
+    }
+  } catch (e) {
+    showStatus('error', `✗ Network error: ${e.message}`);
+  }
+
+  btn.disabled = false;
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.className = type;
+  el.style.display = 'block';
+  el.style.whiteSpace = 'pre-line';
+  el.textContent = msg;
+}
+</script>
+</body>
+</html>
