@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       destination_path:
-        description: "Where to save it in the repo (e.g. downloads/file.zip)"
+        description: "Where to save it in the repo (e.g. downloads/file.exe)"
         required: true
         type: string
 
@@ -22,6 +22,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Git LFS
+        run: git lfs install
+
+      - name: Track file type with LFS
+        run: |
+          EXT="*.${DEST##*.}"
+          DEST="${{ inputs.destination_path }}"
+          EXT="*.${DEST##*.}"
+          git lfs track "$EXT"
+          git add .gitattributes
 
       - name: Download file
         run: |
